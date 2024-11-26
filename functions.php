@@ -2,12 +2,11 @@
 error_reporting(0); // !disable error messages
 
 // TODO: connect with DB
-$conn = mysqli_connect("localhost", "root", "", "kans");
+$conn = mysqli_connect("kans.local", "root", "", "kans");
 
 // TODO: check the connection  
-if (mysqli_connect_errno()) {
-  echo "faild to connect with database!" . $conn->connect_errno;
-  die("retry");
+if ($mysqli->connect_error) {
+  die("Connection failed: " . $mysqli->connect_error);
 }
 
 // TODO: return response json
@@ -25,7 +24,18 @@ function retsponseJson(int $code, String $response)
 function getCustomerList()
 {
   global $conn;
-  $query_run = mysqli_query($conn, "SELECT user_id, name, address, dob, is_active FROM user WHERE is_customer = 1;");
+
+  // prepare query
+  $query = $conn->prepare("SELECT user_id, name, address, dob, is_active FROM user WHERE is_customer = ? AND is_active = ?;");
+
+  // Bind the parameters to the query
+  $is_customer = 1;
+  $is_active = 1;
+  $query->bind_param("ii", $is_customer, $is_active); // Both are integers
+
+  $query->execute();
+  $query_run = $query->get_result();
+
   if ($query_run) {
     if (mysqli_num_rows($query_run) > 0) {
       $res = mysqli_fetch_all($query_run, MYSQLI_ASSOC);
@@ -83,6 +93,7 @@ function getCustomer($customerParams)
 {
   global $conn;
 
+  // default output
   if ($customerParams['id'] == null) return error422('Enter Valid Id');
 
   $customerId = mysqli_real_escape_string($conn, $customerParams['id']);
@@ -96,7 +107,7 @@ function getCustomer($customerParams)
         'message' => 'Customer Fetched Successfully',
         'data' => $res
       ];
-      header("HTTP/1.0 200 OK");
+      header("HTTP/1.0 200 Customer Fetched Successfully");
       return json_encode($data);
     } else {
       header("HTTP/1.0 400 Not found");

@@ -1,0 +1,80 @@
+<?php
+$mysqli = new mysqli("localhost", "user", "password", "database");
+
+// Check connection
+if ($mysqli->connect_error) {
+  die("Connection failed: " . $mysqli->connect_error);
+}
+
+// Prepare a statement
+$stmt = $mysqli->prepare("SELECT * FROM users WHERE username = ?");
+$stmt->bind_param("s", $username); // "s" denotes the type (string) of the parameter
+$username = $_POST['username'];
+
+// Execute the query
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+  echo "User: " . $row['username'];
+}
+
+// Close the statement and connection
+$stmt->close();
+$mysqli->close();
+?>
+
+<?php
+try {
+  $pdo = new PDO("mysql:host=localhost;dbname=database", "user", "password");
+  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+  // Prepare a statement
+  $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+  $stmt->bindParam(':username', $username);
+  $username = $_POST['username'];
+
+  // Execute the query
+  $stmt->execute();
+  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    echo "User: " . $row['username'];
+  }
+} catch (PDOException $e) {
+  echo "Error: " . $e->getMessage();
+}
+
+// Close the connection
+$pdo = null;
+?>
+
+<?php
+$mysqli = new mysqli("localhost", "user", "password", "database");
+
+// Check connection
+if ($mysqli->connect_error) {
+  die("Connection failed: " . $mysqli->connect_error);
+}
+
+// Prepare a statement with multiple parameters
+$stmt = $mysqli->prepare("SELECT * FROM users WHERE username = ? AND email = ? AND age = ?");
+$stmt->bind_param("ssi", $username, $email, $age); // "s" denotes string, "i" denotes integer
+
+// Assigning values to the variables
+$username = $_POST['username'];
+$email = $_POST['email'];
+$age = (int)$_POST['age'];
+
+// Execute the query
+$stmt->execute();
+$result = $stmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+  echo "User: " . $row['username'] . ", Email: " . $row['email'] . ", Age: " . $row['age'];
+}
+
+// Close the statement and connection
+$stmt->close();
+$mysqli->close();
+?>
+
+$stmt->close();
+$mysqli->close();
